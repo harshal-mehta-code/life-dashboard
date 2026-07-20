@@ -6,10 +6,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { useAppStore } from "@/lib/store";
 import { relativeDueLabel } from "@/lib/date-utils";
-import { Phone, MapPin, Laptop, Star, Trash2, Home as HomeIcon } from "lucide-react";
+import { Phone, MapPin, Laptop, Star, Trash2, Home as HomeIcon, CalendarPlus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { TaskDialog } from "@/components/task-dialog";
+import { buildICS, downloadICS, taskToCalendarConfig } from "@/lib/ics";
 
 const contextIcon = {
   home: HomeIcon,
@@ -71,6 +72,17 @@ export function TaskRow({ task, showDelete = true }: { task: Task; showDelete?: 
           )}
         </div>
       </button>
+      {task.dueDate && !isDone && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100"
+          title="Add to calendar"
+          onClick={() => downloadICS(task.title, buildICS(taskToCalendarConfig(task)))}
+        >
+          <CalendarPlus className="h-3.5 w-3.5" />
+        </Button>
+      )}
       {showDelete && (
         <Button
           variant="ghost"

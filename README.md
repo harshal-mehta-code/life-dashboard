@@ -19,8 +19,20 @@ different kinds of "things to keep track of" differently:
   or guilt-trip you — it just reschedules from whenever you actually did it.
 - **Tasks** (errands, calls, one-offs) are tagged by context (phone, out and
   about, at the computer) so you can batch similar things together.
-- **Today** pulls a small, bounded list across all of the above — not
-  everything you've ever added — so it never turns into a wall of anxiety.
+- **Today** pulls a small, globally-capped, single-priority stream across
+  all of the above — not three separate backlogs stacked on top of each
+  other — so it reads like "here's the next small thing," not a ledger of
+  debt.
+- **Calendar export** — anything with a real date (a task's due date, a
+  chore's next occurrence, a person's cadence) can be added to your phone's
+  calendar in one tap via `.ics` — no account or sync required. Chores
+  export as a single next occurrence rather than a recurring rule, since
+  they reschedule from when you actually finish them, not on a fixed
+  calendar interval.
+- A quiet **streak** tracks days you've tended to something — never
+  guilt-driven, just a small nudge to keep the rhythm going.
+
+See [IDEAS.md](./IDEAS.md) for the full backlog of where this could go next.
 
 ## Stack
 

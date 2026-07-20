@@ -20,6 +20,7 @@ export interface Task {
   status: "open" | "done";
   completedAt?: string;
   createdAt: string;
+  snoozedUntil?: string; // ISO date (yyyy-MM-dd); hidden from Today until this date passes
 }
 
 export interface Chore {
@@ -61,4 +62,15 @@ export interface GroceryItem {
 export interface AppSettings {
   todayBudget: number;
   hasSeenWelcome: boolean;
+}
+
+export type AppEventKind = "task-done" | "chore-done" | "contact-logged";
+
+/** Append-only log of things tended. Powers streaks, momentum, and weekly review — never mutated or trimmed. */
+export interface AppEvent {
+  id: string;
+  kind: AppEventKind;
+  refId: string;
+  label: string;
+  at: string; // ISO datetime
 }

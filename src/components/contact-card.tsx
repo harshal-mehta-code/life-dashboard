@@ -5,7 +5,7 @@ import { Contact } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { useAppStore } from "@/lib/store";
 import { relativeSinceLabel, formatCadence } from "@/lib/date-utils";
-import { Phone, MessageCircle, Users, MoreVertical, Pencil, Trash2 } from "lucide-react";
+import { Phone, MessageCircle, Users, MoreVertical, Pencil, Trash2, CalendarPlus } from "lucide-react";
 import { toast } from "sonner";
 import {
   DropdownMenu,
@@ -16,6 +16,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { ContactDialog } from "@/components/contact-dialog";
 import { cn } from "@/lib/utils";
+import { buildICS, contactToCalendarConfig, downloadICS } from "@/lib/ics";
 
 const relationshipLabel: Record<Contact["relationship"], string> = {
   family: "Family",
@@ -90,6 +91,13 @@ export function ContactCard({ contact, overdue }: { contact: Contact; overdue: b
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => setEditOpen(true)}>
               <Pencil className="h-3.5 w-3.5" /> Edit
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() =>
+                downloadICS(`reach-out-${contact.name}`, buildICS(contactToCalendarConfig(contact)))
+              }
+            >
+              <CalendarPlus className="h-3.5 w-3.5" /> Add recurring reminder
             </DropdownMenuItem>
             <DropdownMenuItem
               variant="destructive"

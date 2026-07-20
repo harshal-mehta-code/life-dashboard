@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import {
+  AppEvent,
   AppSettings,
   Chore,
   Contact,
@@ -28,6 +29,7 @@ interface AppState {
   contacts: Contact[];
   interactions: InteractionLog[];
   groceries: GroceryItem[];
+  events: AppEvent[];
   settings: AppSettings;
 
   // tasks
@@ -42,6 +44,7 @@ interface AppState {
   }) => void;
   updateTask: (id: string, patch: Partial<Task>) => void;
   toggleTaskDone: (id: string) => void;
+  snoozeTask: (id: string, untilDateISO: string) => void;
   deleteTask: (id: string) => void;
 
   // chores
@@ -83,7 +86,8 @@ export const useAppStore = create<AppState>()(
       contacts: seedData.contacts,
       interactions: seedData.interactions,
       groceries: seedData.groceries,
-      settings: { todayBudget: 8, hasSeenWelcome: false },
+      events: [],
+      settings: { todayBudget: 6, hasSeenWelcome: false },
 
       addTask: (input) =>
         set((state) => ({
@@ -110,13 +114,31 @@ export const useAppStore = create<AppState>()(
         })),
 
       toggleTaskDone: (id) =>
+        set((state) => {
+          const target = state.tasks.find((t) => t.id === id);
+          const completing = target?.status === "open";
+          return {
+            tasks: state.tasks.map((t) =>
+              t.id === id
+                ? t.status === "open"
+                  ? { ...t, status: "done", completedAt: nowISO() }
+                  : { ...t, status: "open", completedAt: undefined }
+                : t
+            ),
+            events:
+              completing && target
+                ? [
+                    { id: uid(), kind: "task-done", refId: id, label: target.title, at: nowISO() },
+                    ...state.events,
+                  ]
+                : state.events,
+          };
+        }),
+
+      snoozeTask: (id, untilDateISO) =>
         set((state) => ({
           tasks: state.tasks.map((t) =>
-            t.id === id
-              ? t.status === "open"
-                ? { ...t, status: "done", completedAt: nowISO() }
-                : { ...t, status: "open", completedAt: undefined }
-              : t
+            t.id === id ? { ...t, snoozedUntil: untilDateISO } : t
           ),
         })),
 
@@ -143,11 +165,20 @@ export const useAppStore = create<AppState>()(
         })),
 
       completeChore: (id) =>
-        set((state) => ({
-          chores: state.chores.map((c) =>
-            c.id === id ? { ...c, lastDoneAt: nowISO() } : c
-          ),
-        })),
+        set((state) => {
+          const target = state.chores.find((c) => c.id === id);
+          return {
+            chores: state.chores.map((c) =>
+              c.id === id ? { ...c, lastDoneAt: nowISO() } : c
+            ),
+            events: target
+              ? [
+                  { id: uid(), kind: "chore-done", refId: id, label: target.title, at: nowISO() },
+                  ...state.events,
+                ]
+              : state.events,
+          };
+        }),
 
       deleteChore: (id) =>
         set((state) => ({ chores: state.chores.filter((c) => c.id !== id) })),
@@ -177,6 +208,7 @@ export const useAppStore = create<AppState>()(
       logContact: (id, type, note) =>
         set((state) => {
           const date = nowISO();
+          const target = state.contacts.find((c) => c.id === id);
           return {
             contacts: state.contacts.map((c) =>
               c.id === id ? { ...c, lastContactAt: date } : c
@@ -185,6 +217,12 @@ export const useAppStore = create<AppState>()(
               { id: uid(), contactId: id, date, type, note },
               ...state.interactions,
             ],
+            events: target
+              ? [
+                  { id: uid(), kind: "contact-logged", refId: id, label: target.name, at: date },
+                  ...state.events,
+                ]
+              : state.events,
           };
         }),
 

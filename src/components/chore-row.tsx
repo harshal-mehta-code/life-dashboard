@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useAppStore } from "@/lib/store";
 import { formatCadence, relativeDueLabel } from "@/lib/date-utils";
 import { addDaysISO } from "@/lib/date-utils";
-import { Check, MoreVertical, Pencil, Trash2 } from "lucide-react";
+import { Check, MoreVertical, Pencil, Trash2, CalendarPlus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import {
@@ -16,6 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ChoreDialog } from "@/components/chore-dialog";
+import { buildICS, choreToCalendarConfig, downloadICS } from "@/lib/ics";
 
 export function ChoreRow({ chore, showMenu = true }: { chore: Chore; showMenu?: boolean }) {
   const completeChore = useAppStore((s) => s.completeChore);
@@ -37,6 +38,15 @@ export function ChoreRow({ chore, showMenu = true }: { chore: Chore; showMenu?: 
           </span>
         </div>
       </div>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-8 w-8 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100"
+        title="Add reminder to calendar"
+        onClick={() => downloadICS(chore.title, buildICS(choreToCalendarConfig(chore, nextDueISO)))}
+      >
+        <CalendarPlus className="h-3.5 w-3.5" />
+      </Button>
       <Button
         size="sm"
         variant="outline"

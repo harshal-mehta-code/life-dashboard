@@ -53,6 +53,15 @@ export function relativeSinceLabel(dateISO: string | undefined): string {
   return `${Math.round(d / 30)} months ago`;
 }
 
+/** Calm, guilt-free phrasing for a due/anchor date — used on the Today view instead of "N days overdue". */
+export function gentleDueLabel(dateISO: string): string {
+  const diff = differenceInCalendarDays(parseISO(dateISO), new Date());
+  if (diff === 0) return "today";
+  if (diff === 1) return "tomorrow";
+  if (diff > 1) return `in ${diff} days`;
+  return "when you can";
+}
+
 export function formatCadence(days: number): string {
   if (days === 1) return "daily";
   if (days === 7) return "weekly";

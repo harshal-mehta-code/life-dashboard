@@ -1,4 +1,4 @@
-import { Chore, Contact, Task } from "./types";
+import { AppEvent, Chore, Contact, Task } from "./types";
 import { addDaysISO, daysSince, isPastOrToday, todayDateISO } from "./date-utils";
 
 export interface ContactNudge {
@@ -41,7 +41,6 @@ export function dueChores(chores: Chore[]): DueChore[] {
 }
 
 export function upcomingChores(chores: Chore[], withinDays = 7): DueChore[] {
-  const today = todayDateISO();
   const dueIds = new Set(dueChores(chores).map((d) => d.chore.id));
   return chores
     .filter((c) => !c.archived && !dueIds.has(c.id))
@@ -58,24 +57,78 @@ export function upcomingChores(chores: Chore[], withinDays = 7): DueChore[] {
     .map((d) => d);
 }
 
-/** Pick a bounded, prioritized set of one-off tasks for the Today view. */
-export function todayTasks(tasks: Task[], budget: number): Task[] {
-  const open = tasks.filter((t) => t.status === "open" && t.category !== "someday");
+export type AgendaItem =
+  | { kind: "contact"; id: string; contact: Contact; score: number }
+  | { kind: "chore"; id: string; chore: Chore; score: number }
+  | { kind: "task"; id: string; task: Task; score: number };
+
+/**
+ * One calm, globally-capped stream for the Today view — merges people nudges,
+ * due chores, and tasks into a single prioritized list instead of three
+ * separately-uncapped sections. Higher score = surfaces first.
+ */
+export function todayAgenda(
+  contacts: Contact[],
+  chores: Chore[],
+  tasks: Task[],
+  budget: number
+): AgendaItem[] {
   const today = todayDateISO();
 
-  const overdueOrToday = open.filter((t) => t.dueDate && t.dueDate <= today);
-  const important = open.filter((t) => t.important && !(t.dueDate && t.dueDate <= today));
-  const rest = open.filter(
-    (t) => !t.important && !(t.dueDate && t.dueDate <= today)
+  const contactItems: AgendaItem[] = contactNudges(contacts).map((n) => ({
+    kind: "contact" as const,
+    id: n.contact.id,
+    contact: n.contact,
+    score: 150 + Math.min(n.overdueDays, 60),
+  }));
+
+  const choreItems: AgendaItem[] = dueChores(chores).map((d) => ({
+    kind: "chore" as const,
+    id: d.chore.id,
+    chore: d.chore,
+    score: 140 + Math.min(d.overdueDays, 60),
+  }));
+
+  const openTasks = tasks.filter(
+    (t) =>
+      t.status === "open" &&
+      t.category !== "someday" &&
+      !(t.snoozedUntil && t.snoozedUntil > today)
   );
 
-  overdueOrToday.sort((a, b) => (a.dueDate! < b.dueDate! ? -1 : 1));
-  important.sort(
-    (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-  );
-  rest.sort(
-    (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-  );
+  const taskItems: AgendaItem[] = openTasks.map((t) => {
+    let score: number;
+    if (t.dueDate && t.dueDate <= today) {
+      const overdueDays = daysSince(t.dueDate);
+      score = 300 + Math.min(overdueDays, 60) * 5;
+    } else if (t.important) {
+      score = 100;
+    } else {
+      const ageDays = daysSince(t.createdAt);
+      score = 10 + Math.min(ageDays, 30) * 0.2;
+    }
+    return { kind: "task" as const, id: t.id, task: t, score };
+  });
 
-  return [...overdueOrToday, ...important, ...rest].slice(0, budget);
+  return [...contactItems, ...choreItems, ...taskItems]
+    .sort((a, b) => b.score - a.score)
+    .slice(0, budget);
+}
+
+/** Consecutive days (ending today or yesterday) with at least one tended event. */
+export function currentStreak(events: AppEvent[]): number {
+  if (events.length === 0) return 0;
+  const days = new Set(events.map((e) => e.at.slice(0, 10)));
+  let streak = 0;
+  let cursor = todayDateISO();
+  if (!days.has(cursor)) {
+    const yesterday = addDaysISO(cursor, -1);
+    if (!days.has(yesterday)) return 0;
+    cursor = yesterday;
+  }
+  while (days.has(cursor)) {
+    streak++;
+    cursor = addDaysISO(cursor, -1);
+  }
+  return streak;
 }
