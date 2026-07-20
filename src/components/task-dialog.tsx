@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -39,15 +39,21 @@ export function TaskDialog({
   const addTask = useAppStore((s) => s.addTask);
   const updateTask = useAppStore((s) => s.updateTask);
 
-  const [title, setTitle] = useState("");
-  const [notes, setNotes] = useState("");
-  const [category, setCategory] = useState<TaskCategory>("general");
-  const [context, setContext] = useState<Context>("anywhere");
-  const [effort, setEffort] = useState<Effort>("medium");
-  const [important, setImportant] = useState(false);
-  const [dueDate, setDueDate] = useState("");
+  const [title, setTitle] = useState(() => (open ? task?.title ?? "" : ""));
+  const [notes, setNotes] = useState(() => (open ? task?.notes ?? "" : ""));
+  const [category, setCategory] = useState<TaskCategory>(() =>
+    open ? task?.category ?? defaultCategory ?? "general" : "general"
+  );
+  const [context, setContext] = useState<Context>(() => (open ? task?.context ?? "anywhere" : "anywhere"));
+  const [effort, setEffort] = useState<Effort>(() => (open ? task?.effort ?? "medium" : "medium"));
+  const [important, setImportant] = useState(() => (open ? task?.important ?? false : false));
+  const [dueDate, setDueDate] = useState(() => (open ? task?.dueDate ?? "" : ""));
 
-  useEffect(() => {
+  // Reset fields when the dialog transitions to open, without an effect —
+  // see https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (open !== prevOpen) {
+    setPrevOpen(open);
     if (open) {
       setTitle(task?.title ?? "");
       setNotes(task?.notes ?? "");
@@ -57,7 +63,7 @@ export function TaskDialog({
       setImportant(task?.important ?? false);
       setDueDate(task?.dueDate ?? "");
     }
-  }, [open, task, defaultCategory]);
+  }
 
   const submit = () => {
     const trimmed = title.trim();

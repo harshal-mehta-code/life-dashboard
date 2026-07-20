@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -48,17 +48,21 @@ export function ChoreDialog({
   const addChore = useAppStore((s) => s.addChore);
   const updateChore = useAppStore((s) => s.updateChore);
 
-  const [title, setTitle] = useState("");
-  const [recurrenceDays, setRecurrenceDays] = useState(30);
-  const [notes, setNotes] = useState("");
+  const [title, setTitle] = useState(() => (open ? chore?.title ?? "" : ""));
+  const [recurrenceDays, setRecurrenceDays] = useState(() => (open ? chore?.recurrenceDays ?? 30 : 30));
+  const [notes, setNotes] = useState(() => (open ? chore?.notes ?? "" : ""));
 
-  useEffect(() => {
+  // Reset fields when the dialog transitions to open, without an effect —
+  // see https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (open !== prevOpen) {
+    setPrevOpen(open);
     if (open) {
       setTitle(chore?.title ?? "");
       setRecurrenceDays(chore?.recurrenceDays ?? 30);
       setNotes(chore?.notes ?? "");
     }
-  }, [open, chore]);
+  }
 
   const submit = () => {
     const trimmed = title.trim();

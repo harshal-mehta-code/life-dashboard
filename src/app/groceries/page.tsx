@@ -107,7 +107,7 @@ export default function GroceriesPage() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100"
+                    className="h-8 w-8 shrink-0 text-muted-foreground opacity-100 transition-opacity [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100"
                     title={isUsual(item.name) ? "Remove from usuals" : "Save as a usual"}
                     onClick={() => toggleUsualGroceryItem(item.name)}
                   >
@@ -121,7 +121,7 @@ export default function GroceriesPage() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100"
+                    className="h-8 w-8 shrink-0 text-muted-foreground opacity-100 transition-opacity [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100"
                     onClick={() => deleteGroceryItem(item.id)}
                   >
                     <Trash2 className="h-4 w-4" />
@@ -164,7 +164,7 @@ export default function GroceriesPage() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100"
+                        className="h-8 w-8 shrink-0 text-muted-foreground opacity-100 transition-opacity [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100"
                         title={isUsual(item.name) ? "Remove from usuals" : "Save as a usual"}
                         onClick={() => toggleUsualGroceryItem(item.name)}
                       >

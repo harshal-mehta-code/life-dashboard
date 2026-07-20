@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -45,13 +45,19 @@ export function ContactDialog({
   const addContact = useAppStore((s) => s.addContact);
   const updateContact = useAppStore((s) => s.updateContact);
 
-  const [name, setName] = useState("");
-  const [relationship, setRelationship] = useState<Relationship>("friend");
-  const [cadenceDays, setCadenceDays] = useState(14);
-  const [notes, setNotes] = useState("");
-  const [birthday, setBirthday] = useState("");
+  const [name, setName] = useState(() => (open ? contact?.name ?? "" : ""));
+  const [relationship, setRelationship] = useState<Relationship>(() =>
+    open ? contact?.relationship ?? "friend" : "friend"
+  );
+  const [cadenceDays, setCadenceDays] = useState(() => (open ? contact?.cadenceDays ?? 14 : 14));
+  const [notes, setNotes] = useState(() => (open ? contact?.notes ?? "" : ""));
+  const [birthday, setBirthday] = useState(() => (open ? contact?.birthday ?? "" : ""));
 
-  useEffect(() => {
+  // Reset fields when the dialog transitions to open, without an effect —
+  // see https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (open !== prevOpen) {
+    setPrevOpen(open);
     if (open) {
       setName(contact?.name ?? "");
       setRelationship(contact?.relationship ?? "friend");
@@ -59,7 +65,7 @@ export function ContactDialog({
       setNotes(contact?.notes ?? "");
       setBirthday(contact?.birthday ?? "");
     }
-  }, [open, contact]);
+  }
 
   const submit = () => {
     const trimmed = name.trim();

@@ -58,6 +58,29 @@ buttons per row. v3 addressed that directly:
 - Groceries "usuals" — star an item to save it; a quiet chip tray re-adds
   common staples in one tap instead of retyping them each week.
 
+## Shipped in v5 (for reference)
+
+- Fixed a real bug, not just a UX one: every hover-reveal action button (star
+  a grocery item, the chore/task/agenda-row overflow menu, task/chore row
+  delete) was invisible on touch devices — `opacity-0` with no fallback for
+  screens that can't hover. This is very likely why the grocery star felt
+  broken. Scoped the hide-until-hover behavior to `@media (hover: hover)` so
+  touch always shows these controls, desktop keeps the decluttered hover
+  reveal.
+- Added a real automated test suite (Vitest + React Testing Library):
+  111 tests across the pure `lib/` layer (date-utils, selectors, ics), the
+  Zustand store's actions, and the key interactive components (agenda row
+  primary actions, groceries page incl. the star/usuals flow, contact/chore/
+  task dialogs, settings import/export). `npm test` runs it; a GitHub
+  Actions workflow (`.github/workflows/ci.yml`) now runs typecheck + tests +
+  build on every push/PR.
+- While adding tests, replaced the "populate form fields in a `useEffect`
+  when a dialog opens" pattern (contact/chore/task dialogs) with React's
+  documented effect-free alternative — adjusting state during render instead
+  of in an effect. Caught and fixed a real bug this introduced along the way
+  (a dialog mounted already-open skipped its initial pre-fill) before it
+  shipped, specifically because the new tests exercised that path.
+
 ## Theme: Calm & Focus
 
 - **P3** Adaptive daily budget — learn how much actually gets cleared most
