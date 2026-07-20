@@ -31,6 +31,7 @@ export interface Chore {
   lastDoneAt?: string; // ISO datetime
   createdAt: string;
   archived?: boolean;
+  snoozedUntil?: string; // ISO date (yyyy-MM-dd); hidden from Today until this date passes
 }
 
 export interface Contact {
@@ -42,6 +43,7 @@ export interface Contact {
   notes?: string;
   createdAt: string;
   archived?: boolean;
+  snoozedUntil?: string; // ISO date (yyyy-MM-dd); hidden from Today until this date passes
 }
 
 export interface InteractionLog {

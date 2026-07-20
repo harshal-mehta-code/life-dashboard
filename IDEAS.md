@@ -17,14 +17,35 @@ keep.
   recurring `RRULE` for people cadences) + Google Calendar quick-add links.
   No backend or OAuth required.
 
+## Shipped in v3 (for reference)
+
+The overwhelm had moved from Today into the app's total surface area — five
+peer nav destinations, each with its own brand color, plus 3-4 visible
+buttons per row. v3 addressed that directly:
+
+- Collapsed all four domain accent colors (people/chores/tasks/groceries)
+  into the single warm terracotta palette — domain identity now lives on the
+  icon, not a competing hue, so the whole app reads as one product again.
+- Homogenized every Today row to one shared skeleton: title + subtext, one
+  obvious primary action, one kebab overflow menu holding everything else
+  (log type, calendar export, snooze). A contact row went from 4 always-
+  visible buttons down to 1 primary + overflow.
+- Extended "not today" snooze to chores and contacts, not just tasks (all
+  three now live in that same overflow menu).
+- Added a quiet time-to-clear estimate under the date ("about 35 minutes
+  today"), derived from each task's `effort` field, to bound the day into a
+  finishable commitment instead of an open-ended list.
+- Added a Focus/List toggle — Focus mode shows exactly one card at a time
+  with quiet progress dots for what's left, reusing `todayAgenda()`'s order
+  verbatim.
+- Replaced the streak flame with a growth-stage icon (seedling → flower →
+  tree as the streak grows), tying momentum back to the "Tend" name instead
+  of a generic gamification badge.
+- Nav: demoted People/Chores/Tasks/Groceries beneath a quiet "Manage" label
+  so Today reads as home base and the rest read as drawers, not peer tabs.
+
 ## Theme: Calm & Focus
 
-- **P2** Single-focus mode — show exactly one card at a time; completing it
-  slides in the next. The strongest lever for someone who feels overwhelmed.
-- **P2** "Not today" / snooze extended to chores and contact nudges, not just
-  tasks.
-- **P2** Time-to-clear estimate at the top of Today, derived from each
-  task's `effort` field ("about 40 minutes today").
 - **P3** Adaptive daily budget — learn how much actually gets cleared most
   days and stop overfilling automatically.
 - **P3** "Quiet day" mode — deliberately surface only 2-3 things on days that
@@ -34,14 +55,14 @@ keep.
 
 The app is called *Tend* — lean into it as the emotional throughline.
 
-- **P2** Garden/plant visualization that grows with consistency; a
-  relationship that's overdue could visually "wilt" and perk back up the
-  moment you reach out, replacing a scary red number with something kinder.
 - **P3** Momentum heatmap ("tending calendar", GitHub-contribution-graph
   style) built from `events[]`.
 - **P3** Gentle milestones ("kept up with Mom for 3 months straight").
 - **P3** Streak freeze / grace day so one missed day doesn't erase momentum —
   the kind version of streak mechanics.
+- **P3** Relationship health shown as a wilt/perk garden state per contact
+  instead of a red overdue number (deepens the growth-icon idea shipped in
+  v3 down to the individual person level).
 
 ## Theme: Frictionless capture
 
@@ -61,8 +82,6 @@ The app is called *Tend* — lean into it as the emotional throughline.
   `interactions[]` — just needs a surface).
 - **P2** "Things to remember" notes per person (kid's names, the trip they
   mentioned) so a catch-up call has something to open with.
-- **P3** Relationship health shown as a plant/garden state instead of a
-  red overdue number.
 - **P3** Tap-to-act — deep-link `tel:` / `sms:` from a contact row so
   logging a call and *making* it are the same tap.
 

@@ -2,12 +2,13 @@
 
 import { useMemo, useState, useEffect } from "react";
 import { useAppStore } from "@/lib/store";
-import { todayAgenda, currentStreak } from "@/lib/selectors";
+import { todayAgenda, currentStreak, estimateAgendaMinutes } from "@/lib/selectors";
 import { QuickCapture } from "@/components/quick-capture";
 import { AgendaRow } from "@/components/agenda-row";
 import { EmptyState } from "@/components/empty-state";
-import { ShoppingBasket, Sprout, Flame } from "lucide-react";
+import { ShoppingBasket, Sprout, Flower2, TreeDeciduous } from "lucide-react";
 import Link from "next/link";
+import { cn } from "@/lib/utils";
 
 function greeting() {
   const h = new Date().getHours();
@@ -20,6 +21,7 @@ function greeting() {
 export default function TodayPage() {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
+  const [focusMode, setFocusMode] = useState(false);
 
   const contacts = useAppStore((s) => s.contacts);
   const chores = useAppStore((s) => s.chores);
@@ -33,6 +35,7 @@ export default function TodayPage() {
     [contacts, chores, tasks, budget]
   );
   const streak = useMemo(() => currentStreak(events), [events]);
+  const minutes = useMemo(() => estimateAgendaMinutes(agenda), [agenda]);
   const groceriesLeft = groceries.filter((g) => !g.checked).length;
 
   const todayLabel = new Date().toLocaleDateString(undefined, {
@@ -48,11 +51,20 @@ export default function TodayPage() {
           <h1 className="font-heading text-2xl font-semibold tracking-tight sm:text-3xl">
             {greeting()}
           </h1>
-          <p className="mt-1 text-sm text-muted-foreground">{todayLabel}</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {todayLabel}
+            {mounted && agenda.length > 0 && ` · about ${minutes} minutes today`}
+          </p>
         </div>
         {mounted && streak >= 2 && (
           <div className="mt-1 flex shrink-0 items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
-            <Flame className="h-3.5 w-3.5" />
+            {streak >= 10 ? (
+              <TreeDeciduous className="h-3.5 w-3.5" />
+            ) : streak >= 5 ? (
+              <Flower2 className="h-3.5 w-3.5" />
+            ) : (
+              <Sprout className="h-3.5 w-3.5" />
+            )}
             {streak} days
           </div>
         )}
@@ -70,11 +82,55 @@ export default function TodayPage() {
           className="mb-6"
         />
       ) : (
-        <div className="mb-6 rounded-2xl border border-border/60 bg-card/60 px-4 divide-y divide-border/60">
-          {agenda.map((item) => (
-            <AgendaRow key={`${item.kind}-${item.id}`} item={item} />
-          ))}
-        </div>
+        <>
+          {agenda.length > 1 && (
+            <div className="mb-2 flex items-center justify-end gap-1">
+              <button
+                onClick={() => setFocusMode(false)}
+                className={cn(
+                  "rounded-full px-2.5 py-1 text-xs font-medium transition-colors",
+                  !focusMode ? "bg-primary/10 text-primary" : "text-muted-foreground"
+                )}
+              >
+                List
+              </button>
+              <button
+                onClick={() => setFocusMode(true)}
+                className={cn(
+                  "rounded-full px-2.5 py-1 text-xs font-medium transition-colors",
+                  focusMode ? "bg-primary/10 text-primary" : "text-muted-foreground"
+                )}
+              >
+                Focus
+              </button>
+            </div>
+          )}
+
+          {focusMode && agenda.length > 1 ? (
+            <div className="mb-6 flex flex-col items-center gap-4">
+              <div className="w-full rounded-2xl border border-border/60 bg-card/60 px-4">
+                <AgendaRow item={agenda[0]} />
+              </div>
+              <div className="flex items-center gap-1.5">
+                {agenda.map((item, i) => (
+                  <span
+                    key={`${item.kind}-${item.id}`}
+                    className={cn(
+                      "h-1.5 w-1.5 rounded-full",
+                      i === 0 ? "bg-primary" : "bg-border"
+                    )}
+                  />
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="mb-6 rounded-2xl border border-border/60 bg-card/60 px-4 divide-y divide-border/60">
+              {agenda.map((item) => (
+                <AgendaRow key={`${item.kind}-${item.id}`} item={item} />
+              ))}
+            </div>
+          )}
+        </>
       )}
 
       {mounted && groceriesLeft > 0 && (

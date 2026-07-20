@@ -94,19 +94,21 @@
   --sidebar-border: #E7DCC9;
   --sidebar-ring: #B85C3E;
 
-  /* domain accents */
-  --people: #A0526B;
-  --people-foreground: #FFF6F8;
-  --people-soft: #F6E7EB;
-  --chores: #5F7F5C;
-  --chores-foreground: #F5FAF3;
-  --chores-soft: #E7EFE3;
-  --tasks: #4E6C8C;
-  --tasks-foreground: #F3F7FB;
-  --tasks-soft: #E4EBF2;
-  --groceries: #B4842B;
-  --groceries-foreground: #FFFAF0;
-  --groceries-soft: #F5EBD6;
+  /* domain accents — unified into one warm palette so the app reads as one
+     product, not four; domain identity now carries on the icon, not the hue */
+  --brand-soft: #F5E4D8;
+  --people: var(--primary);
+  --people-foreground: var(--primary-foreground);
+  --people-soft: var(--brand-soft);
+  --chores: var(--primary);
+  --chores-foreground: var(--primary-foreground);
+  --chores-soft: var(--brand-soft);
+  --tasks: var(--primary);
+  --tasks-foreground: var(--primary-foreground);
+  --tasks-soft: var(--brand-soft);
+  --groceries: var(--primary);
+  --groceries-foreground: var(--primary-foreground);
+  --groceries-soft: var(--brand-soft);
 }
 
 .dark {
@@ -142,18 +144,19 @@
   --sidebar-border: #43392E;
   --sidebar-ring: #E08A67;
 
-  --people: #D98CA3;
-  --people-foreground: #2A151C;
-  --people-soft: #3A2530;
-  --chores: #92B98C;
-  --chores-foreground: #16231A;
-  --chores-soft: #263427;
-  --tasks: #8CB0D6;
-  --tasks-foreground: #131E2A;
-  --tasks-soft: #212F3D;
-  --groceries: #E0B85C;
-  --groceries-foreground: #2A2109;
-  --groceries-soft: #3A3020;
+  --brand-soft: #3D2A20;
+  --people: var(--primary);
+  --people-foreground: var(--primary-foreground);
+  --people-soft: var(--brand-soft);
+  --chores: var(--primary);
+  --chores-foreground: var(--primary-foreground);
+  --chores-soft: var(--brand-soft);
+  --tasks: var(--primary);
+  --tasks-foreground: var(--primary-foreground);
+  --tasks-soft: var(--brand-soft);
+  --groceries: var(--primary);
+  --groceries-foreground: var(--primary-foreground);
+  --groceries-soft: var(--brand-soft);
 }
 
 @layer base {

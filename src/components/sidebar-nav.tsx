@@ -23,30 +23,38 @@ export function SidebarNav() {
         </div>
       </div>
 
-      <nav className="flex-1 space-y-1 px-3 py-2">
-        {navItems.map((item) => {
+      <nav className="flex-1 px-3 py-2">
+        {navItems.map((item, i) => {
           const isActive = pathname === item.href;
           const Icon = item.icon;
+          const isHome = i === 0;
           return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
-                isActive
-                  ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                  : "text-muted-foreground hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground"
+            <div key={item.href}>
+              {i === 1 && (
+                <p className="mb-1.5 mt-4 px-3 text-[11px] font-medium uppercase tracking-wide text-muted-foreground/60">
+                  Manage
+                </p>
               )}
-            >
-              <Icon
+              <Link
+                href={item.href}
                 className={cn(
-                  "h-4.5 w-4.5",
-                  !isActive && "text-muted-foreground group-hover:text-foreground"
+                  "group flex items-center gap-3 rounded-xl px-3 transition-colors",
+                  isHome ? "py-3 text-sm font-semibold" : "py-2 text-[13px] font-medium",
+                  isActive
+                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                    : "text-muted-foreground hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground"
                 )}
-                style={isActive ? { color: `var(--${item.accent})` } : undefined}
-              />
-              {item.label}
-            </Link>
+              >
+                <Icon
+                  className={cn(
+                    isHome ? "h-4.5 w-4.5" : "h-4 w-4",
+                    !isActive && "text-muted-foreground group-hover:text-foreground"
+                  )}
+                  style={isActive ? { color: `var(--${item.accent})` } : undefined}
+                />
+                {item.label}
+              </Link>
+            </div>
           );
         })}
       </nav>

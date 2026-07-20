@@ -1,17 +1,18 @@
 "use client";
 
+import { ReactNode } from "react";
 import { AgendaItem } from "@/lib/selectors";
 import { useAppStore } from "@/lib/store";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import {
-  Phone,
-  MessageCircle,
-  Users,
-  Check,
-  CalendarPlus,
-  Clock,
-} from "lucide-react";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Phone, MessageCircle, Users, Check, CalendarPlus, Clock, MoreHorizontal } from "lucide-react";
 import { toast } from "sonner";
 import {
   addDaysISO,
@@ -28,17 +29,20 @@ import {
   taskToCalendarConfig,
 } from "@/lib/ics";
 
-function AddToCalendarButton({ onClick, label }: { onClick: () => void; label: string }) {
+function Overflow({ children }: { children: ReactNode }) {
   return (
-    <Button
-      variant="ghost"
-      size="icon"
-      className="h-8 w-8 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100"
-      title={label}
-      onClick={onClick}
-    >
-      <CalendarPlus className="h-3.5 w-3.5" />
-    </Button>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 data-[state=open]:opacity-100"
+        >
+          <MoreHorizontal className="h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">{children}</DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 
@@ -47,10 +51,12 @@ export function AgendaRow({ item }: { item: AgendaItem }) {
   const completeChore = useAppStore((s) => s.completeChore);
   const toggleTaskDone = useAppStore((s) => s.toggleTaskDone);
   const snoozeTask = useAppStore((s) => s.snoozeTask);
+  const snoozeChore = useAppStore((s) => s.snoozeChore);
+  const snoozeContact = useAppStore((s) => s.snoozeContact);
 
   if (item.kind === "contact") {
     const { contact } = item;
-    const log = (type: "call" | "text" | "in-person", label: string) => {
+    const log = (type: "call" | "text" | "in-person" | "other", label: string) => {
       logContact(contact.id, type);
       toast.success(`Logged ${label.toLowerCase()} with ${contact.name}`, {
         description: `You'll hear from us again in ${formatCadence(contact.cadenceDays)}.`,
@@ -67,41 +73,42 @@ export function AgendaRow({ item }: { item: AgendaItem }) {
             Last touched base {relativeSinceLabel(contact.lastContactAt)}
           </p>
         </div>
-        <div className="flex shrink-0 items-center gap-0.5">
-          <AddToCalendarButton
-            label="Add recurring reminder to calendar"
+        <Button
+          size="sm"
+          variant="ghost"
+          className="h-8 shrink-0 gap-1.5 text-primary hover:bg-primary/10 hover:text-primary"
+          onClick={() => log("other", "reaching out")}
+        >
+          <Check className="h-3.5 w-3.5" />
+          Reached out
+        </Button>
+        <Overflow>
+          <DropdownMenuItem onClick={() => log("call", "a call")}>
+            <Phone className="h-3.5 w-3.5" /> Log a call
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => log("text", "a text")}>
+            <MessageCircle className="h-3.5 w-3.5" /> Log a text
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => log("in-person", "time together")}>
+            <Users className="h-3.5 w-3.5" /> Log time together
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
             onClick={() =>
               downloadICS(`reach-out-${contact.name}`, buildICS(contactToCalendarConfig(contact)))
             }
-          />
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 text-muted-foreground hover:text-primary"
-            title="Log a call"
-            onClick={() => log("call", "a call")}
           >
-            <Phone className="h-3.5 w-3.5" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 text-muted-foreground hover:text-primary"
-            title="Log a text"
-            onClick={() => log("text", "a text")}
+            <CalendarPlus className="h-3.5 w-3.5" /> Add recurring reminder
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => {
+              snoozeContact(contact.id, addDaysISO(todayDateISO(), 1));
+              toast("Snoozed to tomorrow", { description: contact.name });
+            }}
           >
-            <MessageCircle className="h-3.5 w-3.5" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 text-muted-foreground hover:text-primary"
-            title="Log time together"
-            onClick={() => log("in-person", "time together")}
-          >
-            <Users className="h-3.5 w-3.5" />
-          </Button>
-        </div>
+            <Clock className="h-3.5 w-3.5" /> Not today
+          </DropdownMenuItem>
+        </Overflow>
       </div>
     );
   }
@@ -116,12 +123,6 @@ export function AgendaRow({ item }: { item: AgendaItem }) {
           <p className="truncate text-sm font-medium">{chore.title}</p>
           <p className="text-xs text-muted-foreground">{formatCadence(chore.recurrenceDays)}</p>
         </div>
-        <AddToCalendarButton
-          label="Add reminder to calendar"
-          onClick={() =>
-            downloadICS(chore.title, buildICS(choreToCalendarConfig(chore, nextDueISO)))
-          }
-        />
         <Button
           size="sm"
           variant="ghost"
@@ -138,6 +139,23 @@ export function AgendaRow({ item }: { item: AgendaItem }) {
           <Check className="h-3.5 w-3.5" />
           Done
         </Button>
+        <Overflow>
+          <DropdownMenuItem
+            onClick={() =>
+              downloadICS(chore.title, buildICS(choreToCalendarConfig(chore, nextDueISO)))
+            }
+          >
+            <CalendarPlus className="h-3.5 w-3.5" /> Add reminder to calendar
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => {
+              snoozeChore(chore.id, addDaysISO(todayDateISO(), 1));
+              toast("Snoozed to tomorrow", { description: chore.title });
+            }}
+          >
+            <Clock className="h-3.5 w-3.5" /> Not today
+          </DropdownMenuItem>
+        </Overflow>
       </div>
     );
   }
@@ -160,24 +178,23 @@ export function AgendaRow({ item }: { item: AgendaItem }) {
           <p className="text-xs text-muted-foreground">{gentleDueLabel(task.dueDate)}</p>
         )}
       </div>
-      {task.dueDate && (
-        <AddToCalendarButton
-          label="Add to calendar"
-          onClick={() => downloadICS(task.title, buildICS(taskToCalendarConfig(task)))}
-        />
-      )}
-      <Button
-        variant="ghost"
-        size="icon"
-        className="h-8 w-8 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100"
-        title="Not today — snooze to tomorrow"
-        onClick={() => {
-          snoozeTask(task.id, addDaysISO(todayDateISO(), 1));
-          toast("Snoozed to tomorrow", { description: task.title });
-        }}
-      >
-        <Clock className="h-4 w-4" />
-      </Button>
+      <Overflow>
+        {task.dueDate && (
+          <DropdownMenuItem
+            onClick={() => downloadICS(task.title, buildICS(taskToCalendarConfig(task)))}
+          >
+            <CalendarPlus className="h-3.5 w-3.5" /> Add to calendar
+          </DropdownMenuItem>
+        )}
+        <DropdownMenuItem
+          onClick={() => {
+            snoozeTask(task.id, addDaysISO(todayDateISO(), 1));
+            toast("Snoozed to tomorrow", { description: task.title });
+          }}
+        >
+          <Clock className="h-3.5 w-3.5" /> Not today
+        </DropdownMenuItem>
+      </Overflow>
     </div>
   );
 }

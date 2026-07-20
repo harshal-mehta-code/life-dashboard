@@ -75,19 +75,23 @@ export function todayAgenda(
 ): AgendaItem[] {
   const today = todayDateISO();
 
-  const contactItems: AgendaItem[] = contactNudges(contacts).map((n) => ({
-    kind: "contact" as const,
-    id: n.contact.id,
-    contact: n.contact,
-    score: 150 + Math.min(n.overdueDays, 60),
-  }));
+  const contactItems: AgendaItem[] = contactNudges(contacts)
+    .filter((n) => !(n.contact.snoozedUntil && n.contact.snoozedUntil > today))
+    .map((n) => ({
+      kind: "contact" as const,
+      id: n.contact.id,
+      contact: n.contact,
+      score: 150 + Math.min(n.overdueDays, 60),
+    }));
 
-  const choreItems: AgendaItem[] = dueChores(chores).map((d) => ({
-    kind: "chore" as const,
-    id: d.chore.id,
-    chore: d.chore,
-    score: 140 + Math.min(d.overdueDays, 60),
-  }));
+  const choreItems: AgendaItem[] = dueChores(chores)
+    .filter((d) => !(d.chore.snoozedUntil && d.chore.snoozedUntil > today))
+    .map((d) => ({
+      kind: "chore" as const,
+      id: d.chore.id,
+      chore: d.chore,
+      score: 140 + Math.min(d.overdueDays, 60),
+    }));
 
   const openTasks = tasks.filter(
     (t) =>
@@ -113,6 +117,17 @@ export function todayAgenda(
   return [...contactItems, ...choreItems, ...taskItems]
     .sort((a, b) => b.score - a.score)
     .slice(0, budget);
+}
+
+const effortMinutes: Record<Task["effort"], number> = { quick: 5, medium: 15, deep: 40 };
+
+/** Rough total minutes for the agenda shown — bounds the day into a finishable commitment. */
+export function estimateAgendaMinutes(agenda: AgendaItem[]): number {
+  return agenda.reduce((sum, item) => {
+    if (item.kind === "task") return sum + effortMinutes[item.task.effort];
+    if (item.kind === "chore") return sum + 10;
+    return sum + 5; // contact
+  }, 0);
 }
 
 /** Consecutive days (ending today or yesterday) with at least one tended event. */

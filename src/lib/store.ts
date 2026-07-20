@@ -55,6 +55,7 @@ interface AppState {
   }) => void;
   updateChore: (id: string, patch: Partial<Chore>) => void;
   completeChore: (id: string) => void;
+  snoozeChore: (id: string, untilDateISO: string) => void;
   deleteChore: (id: string) => void;
 
   // contacts
@@ -66,6 +67,7 @@ interface AppState {
   }) => void;
   updateContact: (id: string, patch: Partial<Contact>) => void;
   logContact: (id: string, type: InteractionType, note?: string) => void;
+  snoozeContact: (id: string, untilDateISO: string) => void;
   deleteContact: (id: string) => void;
 
   // groceries
@@ -180,6 +182,13 @@ export const useAppStore = create<AppState>()(
           };
         }),
 
+      snoozeChore: (id, untilDateISO) =>
+        set((state) => ({
+          chores: state.chores.map((c) =>
+            c.id === id ? { ...c, snoozedUntil: untilDateISO } : c
+          ),
+        })),
+
       deleteChore: (id) =>
         set((state) => ({ chores: state.chores.filter((c) => c.id !== id) })),
 
@@ -225,6 +234,13 @@ export const useAppStore = create<AppState>()(
               : state.events,
           };
         }),
+
+      snoozeContact: (id, untilDateISO) =>
+        set((state) => ({
+          contacts: state.contacts.map((c) =>
+            c.id === id ? { ...c, snoozedUntil: untilDateISO } : c
+          ),
+        })),
 
       deleteContact: (id) =>
         set((state) => ({
