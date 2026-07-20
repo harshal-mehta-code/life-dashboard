@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Contact } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { useAppStore } from "@/lib/store";
-import { relativeSinceLabel, formatCadence } from "@/lib/date-utils";
+import { relativeSinceLabel, formatCadence, formatAnnualDate } from "@/lib/date-utils";
 import { Phone, MessageCircle, Users, MoreVertical, Pencil, Trash2, CalendarPlus } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -49,6 +49,7 @@ export function ContactCard({ contact, overdue }: { contact: Contact; overdue: b
         </div>
         <p className={cn("text-xs text-muted-foreground", overdue && "text-people font-medium")}>
           Last touched base {relativeSinceLabel(contact.lastContactAt)} · {formatCadence(contact.cadenceDays)} goal
+          {contact.birthday && ` · 🎂 ${formatAnnualDate(contact.birthday)}`}
         </p>
         {contact.notes && (
           <p className="mt-0.5 truncate text-xs text-muted-foreground/80 italic">{contact.notes}</p>

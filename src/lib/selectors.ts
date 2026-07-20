@@ -1,5 +1,11 @@
 import { AppEvent, Chore, Contact, Task } from "./types";
-import { addDaysISO, daysSince, isPastOrToday, todayDateISO } from "./date-utils";
+import {
+  addDaysISO,
+  daysSince,
+  daysUntilAnnual,
+  isPastOrToday,
+  todayDateISO,
+} from "./date-utils";
 
 export interface ContactNudge {
   contact: Contact;
@@ -57,8 +63,29 @@ export function upcomingChores(chores: Chore[], withinDays = 7): DueChore[] {
     .map((d) => d);
 }
 
+export interface UpcomingBirthday {
+  contact: Contact;
+  daysUntil: number;
+}
+
+/** Contacts with a birthday within `leadDays`, soonest first. */
+export function upcomingBirthdays(contacts: Contact[], leadDays = 7): UpcomingBirthday[] {
+  return contacts
+    .filter((c) => !c.archived && c.birthday)
+    .map((contact) => ({ contact, daysUntil: daysUntilAnnual(contact.birthday!) }))
+    .filter((b): b is UpcomingBirthday => b.daysUntil !== null && b.daysUntil <= leadDays)
+    .sort((a, b) => a.daysUntil - b.daysUntil);
+}
+
 export type AgendaItem =
-  | { kind: "contact"; id: string; contact: Contact; score: number }
+  | {
+      kind: "contact";
+      id: string;
+      contact: Contact;
+      score: number;
+      reason?: "birthday";
+      daysUntil?: number;
+    }
   | { kind: "chore"; id: string; chore: Chore; score: number }
   | { kind: "task"; id: string; task: Task; score: number };
 
@@ -75,7 +102,7 @@ export function todayAgenda(
 ): AgendaItem[] {
   const today = todayDateISO();
 
-  const contactItems: AgendaItem[] = contactNudges(contacts)
+  const cadenceItems: AgendaItem[] = contactNudges(contacts)
     .filter((n) => !(n.contact.snoozedUntil && n.contact.snoozedUntil > today))
     .map((n) => ({
       kind: "contact" as const,
@@ -83,6 +110,22 @@ export function todayAgenda(
       contact: n.contact,
       score: 150 + Math.min(n.overdueDays, 60),
     }));
+
+  const cadenceIds = new Set(cadenceItems.map((n) => n.id));
+  const birthdayItems: AgendaItem[] = upcomingBirthdays(contacts)
+    .filter(
+      (b) => !cadenceIds.has(b.contact.id) && !(b.contact.snoozedUntil && b.contact.snoozedUntil > today)
+    )
+    .map((b) => ({
+      kind: "contact" as const,
+      id: b.contact.id,
+      contact: b.contact,
+      reason: "birthday" as const,
+      daysUntil: b.daysUntil,
+      score: 250 + (7 - b.daysUntil) * 10,
+    }));
+
+  const contactItems: AgendaItem[] = [...cadenceItems, ...birthdayItems];
 
   const choreItems: AgendaItem[] = dueChores(chores)
     .filter((d) => !(d.chore.snoozedUntil && d.chore.snoozedUntil > today))

@@ -6,7 +6,9 @@ import { todayAgenda, currentStreak, estimateAgendaMinutes } from "@/lib/selecto
 import { QuickCapture } from "@/components/quick-capture";
 import { AgendaRow } from "@/components/agenda-row";
 import { EmptyState } from "@/components/empty-state";
-import { ShoppingBasket, Sprout, Flower2, TreeDeciduous } from "lucide-react";
+import { SettingsDialog } from "@/components/settings-dialog";
+import { Button } from "@/components/ui/button";
+import { ShoppingBasket, Sprout, Flower2, TreeDeciduous, Settings } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
@@ -22,6 +24,7 @@ export default function TodayPage() {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
   const [focusMode, setFocusMode] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   const contacts = useAppStore((s) => s.contacts);
   const chores = useAppStore((s) => s.chores);
@@ -56,19 +59,32 @@ export default function TodayPage() {
             {mounted && agenda.length > 0 && ` · about ${minutes} minutes today`}
           </p>
         </div>
-        {mounted && streak >= 2 && (
-          <div className="mt-1 flex shrink-0 items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
-            {streak >= 10 ? (
-              <TreeDeciduous className="h-3.5 w-3.5" />
-            ) : streak >= 5 ? (
-              <Flower2 className="h-3.5 w-3.5" />
-            ) : (
-              <Sprout className="h-3.5 w-3.5" />
-            )}
-            {streak} days
-          </div>
-        )}
+        <div className="mt-1 flex shrink-0 items-center gap-1.5">
+          {mounted && streak >= 2 && (
+            <div className="flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
+              {streak >= 10 ? (
+                <TreeDeciduous className="h-3.5 w-3.5" />
+              ) : streak >= 5 ? (
+                <Flower2 className="h-3.5 w-3.5" />
+              ) : (
+                <Sprout className="h-3.5 w-3.5" />
+              )}
+              {streak} days
+            </div>
+          )}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-muted-foreground"
+            title="Your data"
+            onClick={() => setSettingsOpen(true)}
+          >
+            <Settings className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
+
+      <SettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
 
       <div className="mb-6">
         <QuickCapture />
@@ -107,21 +123,13 @@ export default function TodayPage() {
           )}
 
           {focusMode && agenda.length > 1 ? (
-            <div className="mb-6 flex flex-col items-center gap-4">
+            <div className="mb-6 flex flex-col items-center gap-3">
               <div className="w-full rounded-2xl border border-border/60 bg-card/60 px-4">
                 <AgendaRow item={agenda[0]} />
               </div>
-              <div className="flex items-center gap-1.5">
-                {agenda.map((item, i) => (
-                  <span
-                    key={`${item.kind}-${item.id}`}
-                    className={cn(
-                      "h-1.5 w-1.5 rounded-full",
-                      i === 0 ? "bg-primary" : "bg-border"
-                    )}
-                  />
-                ))}
-              </div>
+              <p className="text-xs text-muted-foreground">
+                Just this — {agenda.length - 1} more after it
+              </p>
             </div>
           ) : (
             <div className="mb-6 rounded-2xl border border-border/60 bg-card/60 px-4 divide-y divide-border/60">

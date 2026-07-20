@@ -62,6 +62,29 @@ export function gentleDueLabel(dateISO: string): string {
   return "when you can";
 }
 
+/** Days from today until the next occurrence of an annual "MM-DD" date (birthdays, etc). 0 = today. */
+export function daysUntilAnnual(mmdd: string): number | null {
+  const match = /^(\d{2})-(\d{2})$/.exec(mmdd);
+  if (!match) return null;
+  const [, mm, dd] = match;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  let next = new Date(today.getFullYear(), Number(mm) - 1, Number(dd));
+  if (next < today) {
+    next = new Date(today.getFullYear() + 1, Number(mm) - 1, Number(dd));
+  }
+  return differenceInCalendarDays(next, today);
+}
+
+/** "Jun 15" from an "MM-DD" string, for display. */
+export function formatAnnualDate(mmdd: string): string {
+  const [mm, dd] = mmdd.split("-").map(Number);
+  return new Date(2000, mm - 1, dd).toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+  });
+}
+
 export function formatCadence(days: number): string {
   if (days === 1) return "daily";
   if (days === 7) return "weekly";

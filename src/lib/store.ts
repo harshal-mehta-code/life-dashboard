@@ -23,14 +23,18 @@ function uid(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
-interface AppState {
+export interface PersistableData {
   tasks: Task[];
   chores: Chore[];
   contacts: Contact[];
   interactions: InteractionLog[];
   groceries: GroceryItem[];
+  usualGroceryItems: string[];
   events: AppEvent[];
   settings: AppSettings;
+}
+
+interface AppState extends PersistableData {
 
   // tasks
   addTask: (input: {
@@ -64,6 +68,7 @@ interface AppState {
     relationship: Contact["relationship"];
     cadenceDays: number;
     notes?: string;
+    birthday?: string;
   }) => void;
   updateContact: (id: string, patch: Partial<Contact>) => void;
   logContact: (id: string, type: InteractionType, note?: string) => void;
@@ -75,9 +80,14 @@ interface AppState {
   toggleGroceryItem: (id: string) => void;
   deleteGroceryItem: (id: string) => void;
   clearCheckedGroceries: () => void;
+  toggleUsualGroceryItem: (name: string) => void;
+  addUsualToList: (name: string) => void;
 
   // settings
   updateSettings: (patch: Partial<AppSettings>) => void;
+
+  // backup
+  importData: (data: PersistableData) => void;
 }
 
 export const useAppStore = create<AppState>()(
@@ -88,6 +98,7 @@ export const useAppStore = create<AppState>()(
       contacts: seedData.contacts,
       interactions: seedData.interactions,
       groceries: seedData.groceries,
+      usualGroceryItems: [],
       events: [],
       settings: { todayBudget: 6, hasSeenWelcome: false },
 
@@ -201,6 +212,7 @@ export const useAppStore = create<AppState>()(
               relationship: input.relationship,
               cadenceDays: input.cadenceDays,
               notes: input.notes,
+              birthday: input.birthday,
               createdAt: nowISO(),
             },
             ...state.contacts,
@@ -273,8 +285,46 @@ export const useAppStore = create<AppState>()(
           groceries: state.groceries.filter((g) => !g.checked),
         })),
 
+      toggleUsualGroceryItem: (name) =>
+        set((state) => {
+          const key = name.trim().toLowerCase();
+          const exists = state.usualGroceryItems.some((u) => u.toLowerCase() === key);
+          return {
+            usualGroceryItems: exists
+              ? state.usualGroceryItems.filter((u) => u.toLowerCase() !== key)
+              : [...state.usualGroceryItems, name.trim()],
+          };
+        }),
+
+      addUsualToList: (name) =>
+        set((state) => {
+          const key = name.trim().toLowerCase();
+          const uncheckedMatch = state.groceries.find(
+            (g) => !g.checked && g.name.toLowerCase() === key
+          );
+          if (uncheckedMatch) return {};
+          const checkedMatch = state.groceries.find(
+            (g) => g.checked && g.name.toLowerCase() === key
+          );
+          if (checkedMatch) {
+            return {
+              groceries: state.groceries.map((g) =>
+                g.id === checkedMatch.id ? { ...g, checked: false } : g
+              ),
+            };
+          }
+          return {
+            groceries: [
+              { id: uid(), name: name.trim(), checked: false, createdAt: nowISO() },
+              ...state.groceries,
+            ],
+          };
+        }),
+
       updateSettings: (patch) =>
         set((state) => ({ settings: { ...state.settings, ...patch } })),
+
+      importData: (data) => set(() => data),
     }),
     {
       name: "life-dashboard-storage-v1",

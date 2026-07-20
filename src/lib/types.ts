@@ -44,6 +44,7 @@ export interface Contact {
   createdAt: string;
   archived?: boolean;
   snoozedUntil?: string; // ISO date (yyyy-MM-dd); hidden from Today until this date passes
+  birthday?: string; // "MM-DD", no year — just enough to nudge ahead of it each year
 }
 
 export interface InteractionLog {

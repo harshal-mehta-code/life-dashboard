@@ -44,6 +44,20 @@ buttons per row. v3 addressed that directly:
 - Nav: demoted People/Chores/Tasks/Groceries beneath a quiet "Manage" label
   so Today reads as home base and the rest read as drawers, not peer tabs.
 
+## Shipped in v4 (for reference)
+
+- Fixed Focus mode's progress indicator — the dots looked like clickable
+  carousel navigation but did nothing; replaced with a plain, honest line
+  ("Just this — 3 more after it").
+- Manual JSON export/import via a small gear icon on Today (opens a dialog,
+  not a new nav destination) — cheap backup/portability insurance while
+  there's no backend.
+- Birthdays on contacts (optional "MM-DD"): shown on the People page, and
+  surfaced as a gentle Today nudge in the days leading up to it — reusing
+  the existing contact row/agenda-item shape rather than adding a new kind.
+- Groceries "usuals" — star an item to save it; a quiet chip tray re-adds
+  common staples in one tap instead of retyping them each week.
+
 ## Theme: Calm & Focus
 
 - **P3** Adaptive daily budget — learn how much actually gets cleared most
@@ -77,7 +91,6 @@ The app is called *Tend* — lean into it as the emotional throughline.
 
 ## Theme: People / relationships (the strongest differentiator — go deeper)
 
-- **P2** Birthdays & key dates with lead-time nudges.
 - **P2** Per-contact interaction history/timeline (already logged in
   `interactions[]` — just needs a surface).
 - **P2** "Things to remember" notes per person (kid's names, the trip they
@@ -120,9 +133,8 @@ The app is called *Tend* — lean into it as the emotional throughline.
   like a lighter middle ground than OAuth but actually needs the same
   server-side data storage, so it's gated on the same infra.
 
-## Theme: Groceries (currently the flattest surface — most upside)
+## Theme: Groceries
 
-- **P2** Recurring "usuals" — re-add common staples in one tap.
 - **P3** Aisle/category grouping for an actual shopping run.
 - **P3** Pantry / running-low tracking that feeds the list automatically.
 - **P3** Meal → ingredients — plan a couple of meals, auto-populate the
@@ -159,8 +171,6 @@ The app is called *Tend* — lean into it as the emotional throughline.
 The user plans to eventually wrap this as a native iOS app once the web
 version "hits the right spot" — keep that in mind for every decision below.
 
-- **P2** Manual export/import (JSON) for backup and device migration —
-  cheap insurance while there's no backend at all.
 - **P2** Keep all business logic (`selectors.ts`, `store.ts`, `date-utils.ts`,
   `ics.ts`) as pure, framework-agnostic functions so a Capacitor or React
   Native shell can reuse them verbatim without a rewrite. This boundary is

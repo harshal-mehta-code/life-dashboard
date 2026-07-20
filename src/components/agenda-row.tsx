@@ -70,7 +70,9 @@ export function AgendaRow({ item }: { item: AgendaItem }) {
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-medium">{contact.name}</p>
           <p className="text-xs text-muted-foreground">
-            Last touched base {relativeSinceLabel(contact.lastContactAt)}
+            {item.reason === "birthday"
+              ? `🎂 Birthday ${item.daysUntil === 0 ? "today" : `in ${item.daysUntil} days`}`
+              : `Last touched base ${relativeSinceLabel(contact.lastContactAt)}`}
           </p>
         </div>
         <Button

@@ -7,20 +7,33 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { EmptyState } from "@/components/empty-state";
-import { ShoppingBasket, Trash2, X } from "lucide-react";
+import { ShoppingBasket, Trash2, X, Star, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function GroceriesPage() {
   const groceries = useAppStore((s) => s.groceries);
+  const usualGroceryItems = useAppStore((s) => s.usualGroceryItems);
   const addGroceryItem = useAppStore((s) => s.addGroceryItem);
   const toggleGroceryItem = useAppStore((s) => s.toggleGroceryItem);
   const deleteGroceryItem = useAppStore((s) => s.deleteGroceryItem);
   const clearCheckedGroceries = useAppStore((s) => s.clearCheckedGroceries);
+  const toggleUsualGroceryItem = useAppStore((s) => s.toggleUsualGroceryItem);
+  const addUsualToList = useAppStore((s) => s.addUsualToList);
 
   const [name, setName] = useState("");
 
   const unchecked = useMemo(() => groceries.filter((g) => !g.checked), [groceries]);
   const checked = useMemo(() => groceries.filter((g) => g.checked), [groceries]);
+  const isUsual = (itemName: string) =>
+    usualGroceryItems.some((u) => u.toLowerCase() === itemName.toLowerCase());
+
+  const availableUsuals = useMemo(
+    () =>
+      usualGroceryItems.filter(
+        (u) => !unchecked.some((g) => g.name.toLowerCase() === u.toLowerCase())
+      ),
+    [usualGroceryItems, unchecked]
+  );
 
   const submit = () => {
     const trimmed = name.trim();
@@ -42,7 +55,7 @@ export default function GroceriesPage() {
             e.preventDefault();
             submit();
           }}
-          className="mb-5 flex items-center gap-2 rounded-2xl border border-border bg-card p-2 shadow-sm"
+          className="mb-3 flex items-center gap-2 rounded-2xl border border-border bg-card p-2 shadow-sm"
         >
           <Input
             value={name}
@@ -54,6 +67,22 @@ export default function GroceriesPage() {
             Add
           </Button>
         </form>
+
+        {availableUsuals.length > 0 && (
+          <div className="mb-5 flex flex-wrap items-center gap-1.5">
+            <span className="mr-0.5 text-xs text-muted-foreground">Usuals:</span>
+            {availableUsuals.map((u) => (
+              <button
+                key={u}
+                onClick={() => addUsualToList(u)}
+                className="flex items-center gap-1 rounded-full border border-border px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors hover:border-primary/30 hover:text-primary"
+              >
+                <Plus className="h-3 w-3" />
+                {u}
+              </button>
+            ))}
+          </div>
+        )}
 
         {groceries.length === 0 ? (
           <EmptyState
@@ -75,6 +104,20 @@ export default function GroceriesPage() {
                     className="h-5 w-5 shrink-0 data-[state=checked]:bg-groceries data-[state=checked]:border-groceries"
                   />
                   <p className="flex-1 text-sm font-medium">{item.name}</p>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100"
+                    title={isUsual(item.name) ? "Remove from usuals" : "Save as a usual"}
+                    onClick={() => toggleUsualGroceryItem(item.name)}
+                  >
+                    <Star
+                      className={cn(
+                        "h-4 w-4",
+                        isUsual(item.name) && "fill-primary text-primary opacity-100"
+                      )}
+                    />
+                  </Button>
                   <Button
                     variant="ghost"
                     size="icon"
@@ -118,6 +161,20 @@ export default function GroceriesPage() {
                       <p className="flex-1 text-sm text-muted-foreground line-through">
                         {item.name}
                       </p>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100"
+                        title={isUsual(item.name) ? "Remove from usuals" : "Save as a usual"}
+                        onClick={() => toggleUsualGroceryItem(item.name)}
+                      >
+                        <Star
+                          className={cn(
+                            "h-4 w-4",
+                            isUsual(item.name) && "fill-primary text-primary opacity-100"
+                          )}
+                        />
+                      </Button>
                     </div>
                   ))}
                 </div>

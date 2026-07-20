@@ -49,6 +49,7 @@ export function ContactDialog({
   const [relationship, setRelationship] = useState<Relationship>("friend");
   const [cadenceDays, setCadenceDays] = useState(14);
   const [notes, setNotes] = useState("");
+  const [birthday, setBirthday] = useState("");
 
   useEffect(() => {
     if (open) {
@@ -56,22 +57,31 @@ export function ContactDialog({
       setRelationship(contact?.relationship ?? "friend");
       setCadenceDays(contact?.cadenceDays ?? 14);
       setNotes(contact?.notes ?? "");
+      setBirthday(contact?.birthday ?? "");
     }
   }, [open, contact]);
 
   const submit = () => {
     const trimmed = name.trim();
     if (!trimmed) return;
+    const validBirthday = /^\d{2}-\d{2}$/.test(birthday) ? birthday : undefined;
     if (contact) {
       updateContact(contact.id, {
         name: trimmed,
         relationship,
         cadenceDays,
         notes: notes.trim() || undefined,
+        birthday: validBirthday,
       });
       toast.success("Updated", { description: trimmed });
     } else {
-      addContact({ name: trimmed, relationship, cadenceDays, notes: notes.trim() || undefined });
+      addContact({
+        name: trimmed,
+        relationship,
+        cadenceDays,
+        notes: notes.trim() || undefined,
+        birthday: validBirthday,
+      });
       toast.success("Added to your people", { description: trimmed });
     }
     onOpenChange(false);
@@ -130,6 +140,16 @@ export function ContactDialog({
                 </SelectContent>
               </Select>
             </div>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="contact-birthday">Birthday (optional)</Label>
+            <Input
+              id="contact-birthday"
+              value={birthday}
+              onChange={(e) => setBirthday(e.target.value)}
+              placeholder="MM-DD, e.g. 06-15"
+              maxLength={5}
+            />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="contact-notes">Notes</Label>
