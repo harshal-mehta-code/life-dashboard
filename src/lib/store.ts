@@ -45,7 +45,7 @@ interface AppState extends PersistableData {
     effort?: Effort;
     important?: boolean;
     dueDate?: string;
-  }) => void;
+  }) => string;
   updateTask: (id: string, patch: Partial<Task>) => void;
   toggleTaskDone: (id: string) => void;
   snoozeTask: (id: string, untilDateISO: string) => void;
@@ -102,11 +102,12 @@ export const useAppStore = create<AppState>()(
       events: [],
       settings: { todayBudget: 6, hasSeenWelcome: false },
 
-      addTask: (input) =>
+      addTask: (input) => {
+        const id = uid();
         set((state) => ({
           tasks: [
             {
-              id: uid(),
+              id,
               title: input.title,
               notes: input.notes,
               category: input.category ?? "general",
@@ -119,7 +120,9 @@ export const useAppStore = create<AppState>()(
             },
             ...state.tasks,
           ],
-        })),
+        }));
+        return id;
+      },
 
       updateTask: (id, patch) =>
         set((state) => ({

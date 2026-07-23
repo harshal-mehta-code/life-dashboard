@@ -39,3 +39,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# iOS (xcodegen-managed — regenerate with `cd ios && xcodegen generate`)
+ios/Tend.xcodeproj/
+ios/Generated/
+ios/.screenshots/
+ios/**/xcuserdata/
+ios/*.xcuserstate

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAppStore } from "@/lib/store";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
@@ -15,7 +15,7 @@ const filters: { value: TaskCategory | "all"; label: string }[] = [
   { value: "all", label: "All" },
   { value: "call", label: "Calls" },
   { value: "errand", label: "Errands" },
-  { value: "general", label: "Tasks" },
+  { value: "general", label: "Other" },
   { value: "someday", label: "Someday" },
 ];
 
@@ -24,6 +24,16 @@ export default function TasksPage() {
   const [addOpen, setAddOpen] = useState(false);
   const [filter, setFilter] = useState<TaskCategory | "all">("all");
   const [showDone, setShowDone] = useState(false);
+
+  useEffect(() => {
+    const requested = new URLSearchParams(window.location.search).get("filter");
+    if (requested && filters.some((f) => f.value === requested)) {
+      // One-time sync from the ?filter= deep link (e.g. quick-capture's "View" toast action).
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setFilter(requested as TaskCategory | "all");
+    }
+    // Only meant to apply the deep-link filter once, on arrival.
+  }, []);
 
   const filtered = useMemo(
     () => (filter === "all" ? tasks : tasks.filter((t) => t.category === filter)),

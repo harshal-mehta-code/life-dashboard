@@ -115,7 +115,7 @@ export function TaskDialog({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="general">Task</SelectItem>
+                  <SelectItem value="general">Other</SelectItem>
                   <SelectItem value="call">Call</SelectItem>
                   <SelectItem value="errand">Errand</SelectItem>
                   <SelectItem value="someday">Someday</SelectItem>

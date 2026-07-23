@@ -3,6 +3,7 @@ import {
   addDays as fnsAddDays,
   formatISO,
   isToday as fnsIsToday,
+  nextSaturday,
   parseISO,
 } from "date-fns";
 
@@ -83,6 +84,14 @@ export function formatAnnualDate(mmdd: string): string {
     month: "short",
     day: "numeric",
   });
+}
+
+/** The coming Saturday — today itself if today is already Sat/Sun. Used by the "This weekend" reschedule preset. */
+export function thisWeekendISO(): string {
+  const now = new Date();
+  const day = now.getDay(); // 0 = Sun, 6 = Sat
+  if (day === 6 || day === 0) return todayDateISO();
+  return formatISO(nextSaturday(now), { representation: "date" });
 }
 
 export function formatCadence(days: number): string {

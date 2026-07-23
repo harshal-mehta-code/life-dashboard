@@ -1,35 +1,63 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Phone, MapPin, Sparkles, ListTodo } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Phone, MapPin, Sparkles, ListTodo } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/lib/store";
 import { TaskCategory } from "@/lib/types";
+import { todayDateISO } from "@/lib/date-utils";
 import { toast } from "sonner";
 
 const quickCategories: { value: TaskCategory; label: string; icon: typeof Phone }[] = [
-  { value: "general", label: "Task", icon: ListTodo },
+  { value: "general", label: "Other", icon: ListTodo },
   { value: "call", label: "Call", icon: Phone },
   { value: "errand", label: "Errand", icon: MapPin },
   { value: "someday", label: "Someday", icon: Sparkles },
 ];
 
+const destinationLabel: Record<TaskCategory, string> = {
+  general: "Tasks → Other",
+  call: "Tasks → Calls",
+  errand: "Tasks → Errands",
+  someday: "Tasks → Someday",
+};
+
 export function QuickCapture() {
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState<TaskCategory>("general");
   const addTask = useAppStore((s) => s.addTask);
+  const updateTask = useAppStore((s) => s.updateTask);
+  const router = useRouter();
 
   const submit = () => {
     const trimmed = title.trim();
     if (!trimmed) return;
-    addTask({
+    const id = addTask({
       title: trimmed,
       category,
       context: category === "call" ? "phone" : category === "errand" ? "out" : "anywhere",
     });
-    toast.success("Added", { description: trimmed });
+    toast.success(`Added to ${destinationLabel[category]}`, {
+      description: trimmed,
+      action: {
+        label: "View",
+        onClick: () => router.push(`/tasks?filter=${category}`),
+      },
+      ...(category !== "someday"
+        ? {
+            cancel: {
+              label: "Do today?",
+              onClick: () => {
+                updateTask(id, { dueDate: todayDateISO() });
+                toast.success("Moved to today", { description: trimmed });
+              },
+            },
+          }
+        : {}),
+    });
     setTitle("");
     setCategory("general");
   };
@@ -43,12 +71,11 @@ export function QuickCapture() {
         }}
         className="flex items-center gap-2"
       >
-        <Plus className="ml-1 h-4 w-4 shrink-0 text-muted-foreground" />
         <Input
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="Quick add anything… call the vet, return the package, text Jamie back"
-          className="border-0 shadow-none focus-visible:ring-0 px-0 h-8"
+          className="border-0 shadow-none focus-visible:ring-0 px-1 h-8"
         />
         <Button type="submit" size="sm" disabled={!title.trim()}>
           Add

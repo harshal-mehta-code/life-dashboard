@@ -28,6 +28,7 @@ import {
   downloadICS,
   taskToCalendarConfig,
 } from "@/lib/ics";
+import { DatePresetMenu } from "@/components/date-preset-menu";
 
 function Overflow({ children }: { children: ReactNode }) {
   return (
@@ -53,6 +54,7 @@ export function AgendaRow({ item }: { item: AgendaItem }) {
   const snoozeTask = useAppStore((s) => s.snoozeTask);
   const snoozeChore = useAppStore((s) => s.snoozeChore);
   const snoozeContact = useAppStore((s) => s.snoozeContact);
+  const updateTask = useAppStore((s) => s.updateTask);
 
   if (item.kind === "contact") {
     const { contact } = item;
@@ -181,6 +183,12 @@ export function AgendaRow({ item }: { item: AgendaItem }) {
         )}
       </div>
       <Overflow>
+        <DatePresetMenu
+          onPick={(dateISO) => {
+            updateTask(task.id, { dueDate: dateISO });
+            toast.success("Rescheduled", { description: gentleDueLabel(dateISO) });
+          }}
+        />
         {task.dueDate && (
           <DropdownMenuItem
             onClick={() => downloadICS(task.title, buildICS(taskToCalendarConfig(task)))}
